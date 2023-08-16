@@ -52,6 +52,23 @@ def get_labels():
         for label in labels:
             print(label['name'])
 
+def get_subject_from_message(message):
+    """
+    Extracts the subject from a Gmail API message object.
+
+    Args:
+        message: Gmail API message object.
+
+    Returns:
+        subject: Subject string of the email.
+    """
+    headers = message['payload']['headers']
+    for header in headers:
+        if header['name'] == 'Subject':
+            return header['value']
+
+    return None
+
 def read_latest_unread_email(service):
     """
     Reads the latest unread email from the user's Gmail account.
@@ -75,9 +92,14 @@ def read_latest_unread_email(service):
         msg = service.users().messages().get(userId='me', id=latest_message_info['id']).execute()
 
         # Step 3 (optional): Mark the email as read
-        service.users().messages().modify(userId='me', id=latest_message_info['id'], body={'removeLabelIds': ['UNREAD']}).execute()
+        # service.users().messages().modify(userId='me', id=latest_message_info['id'], body={'removeLabelIds': ['UNREAD']}).execute()
 
-        print(f"Message Subject: {msg['subject']}")
+        subject = get_subject_from_message(msg)
+        if subject:
+            print(f"Message Subject: {subject}")
+        else:
+            print("Subject not found")
+            
         return msg
 
 if __name__ == '__main__':
